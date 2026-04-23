@@ -8,134 +8,103 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: white; min-h-screen; }
+        body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: white; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .ad-box { background: rgba(255, 255, 255, 0.02); border: 1px dashed #334155; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.7rem; }
-        .msg-card { transition: all 0.3s ease; }
-        .msg-card:hover { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.5); }
     </style>
 </head>
-<body class="pb-10">
+<body class="min-h-screen pb-10">
 
-    <div class="container mx-auto p-4 grid grid-cols-2 gap-4">
-        <div class="ad-box h-20">إعلان 1</div>
-        <div class="ad-box h-20">إعلان 2</div>
-    </div>
-
-    <div class="container mx-auto px-4 py-6 max-w-4xl">
-        <div class="glass rounded-3xl p-6 text-center mb-8">
-            <h1 class="text-xl mb-4 text-blue-400">عنوان بريدك المؤقت الحالي</h1>
-            
-            <div class="flex flex-col md:flex-row items-center justify-center gap-3 bg-black/40 p-4 rounded-2xl border border-blue-500/20">
-                <span id="emailAddr" class="text-xl md:text-2xl font-mono text-white tracking-wider">جاري التوليد...</span>
-                <div class="flex gap-2">
-                    <button onclick="copyEmail()" class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-xl transition flex items-center gap-2">
-                        <i class="fas fa-copy"></i> نسخ
-                    </button>
-                    <button onclick="createNewEmail()" class="bg-gray-700 hover:bg-gray-600 px-5 py-2 rounded-xl transition flex items-center gap-2">
-                        <i class="fas fa-redo"></i> تغيير
-                    </button>
-                </div>
+    <div class="container mx-auto px-4 py-10 max-w-4xl text-center">
+        <div class="glass rounded-3xl p-8 mb-8">
+            <h1 class="text-xl mb-4 text-blue-400">بريدك المؤقت النشط</h1>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-3 bg-black/40 p-4 rounded-2xl border border-blue-500/30">
+                <span id="emailAddr" class="text-2xl font-mono text-white tracking-widest">جاري التحميل...</span>
+                <button onclick="copyEmail()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl transition">نسخ</button>
             </div>
-            <p class="text-xs text-gray-500 mt-4">لا تغلق الصفحة، سيصلك البريد هنا تلقائياً خلال ثوانٍ.</p>
+            <p id="statusUpdate" class="text-xs text-blue-300 mt-4 animate-pulse italic">في انتظار وصول رسائل من Gmail...</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="hidden lg:block space-y-4">
-                <div class="ad-box h-64">إعلان 3</div>
-                <div class="ad-box h-64">إعلان 4</div>
-            </div>
-
-            <div class="lg:col-span-3">
-                <div class="glass rounded-3xl overflow-hidden min-h-[400px]">
-                    <div class="bg-white/10 p-4 flex justify-between items-center border-b border-white/5">
-                        <span class="font-bold flex items-center gap-2">
-                            <i class="fas fa-inbox text-blue-400"></i> صندوق الوارد
-                        </span>
-                        <div id="loader" class="flex items-center gap-2 text-xs text-blue-300">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-                            يتم التحديث...
-                        </div>
-                    </div>
-                    <div id="messagesList" class="p-4 space-y-3">
-                        <div class="text-center py-20 text-gray-500">
-                            <i class="fas fa-envelope-open text-4xl mb-4 block opacity-20"></i>
-                            في انتظار وصول أول رسالة...
-                        </div>
-                    </div>
-                </div>
+        <div class="glass rounded-3xl overflow-hidden min-h-[300px]">
+            <div class="bg-white/10 p-4 border-b border-white/10 text-right">صندوق الوارد</div>
+            <div id="messagesList" class="p-4 space-y-3 text-right">
+                <div class="text-center py-20 text-gray-500">لا توجد رسائل بعد.. جرب الإرسال الآن</div>
             </div>
         </div>
     </div>
 
     <script>
-        let randomName = localStorage.getItem('temp_mail_user') || Math.random().toString(36).substring(2, 12);
-        let randomDomain = localStorage.getItem('temp_mail_domain') || "1secmail.com";
+        // تثبيت النطاق لضمان التوافق
+        const randomName = localStorage.getItem('user_v2') || Math.random().toString(36).substring(2, 10);
+        const randomDomain = "1secmail.com";
+        localStorage.setItem('user_v2', randomName);
         
-        // حفظ البيانات لضمان عدم تغير الإيميل عند التحديث
-        localStorage.setItem('temp_mail_user', randomName);
-        localStorage.setItem('temp_mail_domain', randomDomain);
-
         const fullEmail = `${randomName}@${randomDomain}`;
         document.getElementById('emailAddr').innerText = fullEmail;
 
         function copyEmail() {
             navigator.clipboard.writeText(fullEmail);
-            alert("تم نسخ البريد بنجاح!");
-        }
-
-        function createNewEmail() {
-            localStorage.clear();
-            window.location.reload();
+            alert("تم نسخ البريد: " + fullEmail);
         }
 
         async function fetchMessages() {
+            const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${randomName}&domain=${randomDomain}`;
+            
             try {
-                const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${randomName}&domain=${randomDomain}`;
+                // محاولة الجلب المباشر
                 const response = await fetch(url);
-                const messages = await response.json();
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
                 
-                const list = document.getElementById('messagesList');
-                
-                if (messages.length > 0) {
-                    list.innerHTML = "";
-                    messages.forEach(msg => {
-                        const card = document.createElement('div');
-                        card.className = "msg-card glass p-4 rounded-xl cursor-pointer border border-white/5";
-                        card.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-blue-400 font-bold">${msg.from}</h4>
-                                    <p class="text-sm text-gray-200 mt-1">${msg.subject}</p>
-                                </div>
-                                <span class="text-[10px] text-gray-500">${msg.date.split(' ')[1]}</span>
-                            </div>
-                        `;
-                        card.onclick = () => readMail(msg.id);
-                        list.prepend(card);
-                    });
+                updateUI(data);
+            } catch (error) {
+                console.log("التبديل إلى الوضع الاحتياطي (Proxy)...");
+                // إذا فشل الجلب المباشر (CORS)، نستخدم الوسيط
+                try {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                    const proxyRes = await fetch(proxyUrl);
+                    const proxyData = await proxyRes.json();
+                    const realData = JSON.parse(proxyData.contents);
+                    updateUI(realData);
+                } catch (e) {
+                    console.error("فشل كلي في جلب الرسائل:", e);
                 }
-            } catch (err) {
-                console.log("Error fetching mail...");
+            }
+        }
+
+        function updateUI(messages) {
+            const list = document.getElementById('messagesList');
+            const status = document.getElementById('statusUpdate');
+            
+            if (messages.length > 0) {
+                status.innerText = `تم استلام ${messages.length} رسالة!`;
+                list.innerHTML = "";
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = "bg-white/5 p-4 rounded-xl border border-white/10 hover:bg-blue-900/20 cursor-pointer";
+                    div.innerHTML = `<strong>من: ${msg.from}</strong><br><span class="text-sm text-gray-400">${msg.subject}</span>`;
+                    div.onclick = () => readMail(msg.id);
+                    list.appendChild(div);
+                });
             }
         }
 
         async function readMail(id) {
+            const url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${randomName}&domain=${randomDomain}&id=${id}`;
             try {
-                const url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${randomName}&domain=${randomDomain}&id=${id}`;
                 const response = await fetch(url);
                 const data = await response.json();
-                
-                // عرض محتوى الرسالة في نافذة تنبيه بسيطة (يمكن تطويرها لاحقاً لتكون مودال احترافي)
-                alert(`من: ${data.from}\nالموضوع: ${data.subject}\n\nالرسالة:\n${data.textBody}`);
-            } catch (err) {
-                alert("تعذر فتح الرسالة حالياً");
+                alert(`المحتوى:\n\n${data.textBody}`);
+            } catch (e) {
+                // محاولة القراءة عبر الوسيط إذا فشل المباشر
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const res = await fetch(proxyUrl);
+                const pData = await res.json();
+                const d = JSON.parse(pData.contents);
+                alert(`المحتوى:\n\n${d.textBody}`);
             }
         }
 
-        // تحديث كل 5 ثوانٍ
         setInterval(fetchMessages, 5000);
-        // تحديث أولي عند الفتح
         fetchMessages();
     </script>
 </body>
