@@ -35,6 +35,7 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             display: inline-block;
+            flex-shrink: 0;
         }
         .modal-overlay {
             display: none;
@@ -55,11 +56,44 @@
             max-height: 80vh;
             overflow-y: auto;
         }
-        .copy-btn:active { transform: scale(0.95); }
+        .action-btn {
+            transition: transform 0.15s, background 0.2s;
+        }
+        .action-btn:active { transform: scale(0.95); }
         pre { white-space: pre-wrap; word-break: break-word; }
+
+        /* تأثير نبضة للرسائل الجديدة */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .msg-item { animation: fadeIn 0.3s ease forwards; }
+
+        /* شريط تنبيه نسخ */
+        #copyToast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #22c55e;
+            color: white;
+            padding: 0.6rem 1.4rem;
+            border-radius: 999px;
+            font-weight: bold;
+            font-size: 0.875rem;
+            transition: transform 0.3s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+        #copyToast.show {
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body class="p-6 min-h-screen">
+
+    <!-- شريط تنبيه النسخ -->
+    <div id="copyToast">✅ تم نسخ البريد!</div>
 
     <div class="max-w-2xl mx-auto">
 
@@ -73,20 +107,24 @@
                 <h1 class="text-blue-400 text-lg font-semibold">بريدك المؤقت جاهز</h1>
             </div>
 
-            <!-- عرض الإيميل مع زر نسخ -->
-            <div class="flex items-center gap-2 justify-center mb-4">
+            <!-- عرض الإيميل مع زر نسخ — ترتيب RTL صحيح: نص أولاً ثم الأزرار -->
+            <div class="flex items-center gap-2 justify-center mb-4 flex-row-reverse">
+                <!-- الأزرار على اليسار في RTL -->
+                <div class="flex gap-2 flex-shrink-0">
+                    <button id="btnCopy" onclick="copyEmail()" title="نسخ البريد"
+                        class="action-btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap">
+                        📋 نسخ
+                    </button>
+                    <button id="btnNew" onclick="refreshEmail()" title="الحصول على إيميل جديد"
+                        class="action-btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap">
+                        🔄 جديد
+                    </button>
+                </div>
+                <!-- عرض الإيميل على اليمين -->
                 <div id="emailDisplay"
-                    class="text-xl font-mono bg-black/40 px-5 py-3 rounded-xl border border-blue-900/50 select-all flex-1 text-center">
+                    class="text-base font-mono bg-black/40 px-5 py-3 rounded-xl border border-blue-900/50 select-all flex-1 text-center truncate">
                     جاري التحميل...
                 </div>
-                <button onclick="copyEmail()" title="نسخ"
-                    class="copy-btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl transition text-sm font-bold whitespace-nowrap">
-                    📋 نسخ
-                </button>
-                <button onclick="refreshEmail()" title="تجديد الإيميل"
-                    class="copy-btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl transition text-sm font-bold whitespace-nowrap">
-                    🔄 جديد
-                </button>
             </div>
 
             <!-- شريط الحالة -->
@@ -100,10 +138,16 @@
         <div>
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold flex items-center gap-2">
-                    <span id="inboxDot" class="w-3 h-3 bg-green-500 rounded-full"></span>
+                    <span id="inboxDot" class="w-3 h-3 bg-green-500 rounded-full inline-block"></span>
                     صندوق الوارد
                 </h2>
-                <span id="msgCount" class="text-sm text-gray-500"></span>
+                <div class="flex items-center gap-3">
+                    <span id="msgCount" class="text-sm text-gray-500"></span>
+                    <button onclick="checkInbox()" title="تحديث يدوي"
+                        class="action-btn text-gray-400 hover:text-white text-lg" id="refreshBtn">
+                        ⟳
+                    </button>
+                </div>
             </div>
 
             <div id="inbox" class="space-y-3 min-h-[200px]">
@@ -133,45 +177,78 @@
     // ============================
     //   متغيرات عامة
     // ============================
-    let sidToken = localStorage.getItem('gm_sid') || '';
+    let sidToken   = localStorage.getItem('gm_sid')   || '';
     let currentEmail = localStorage.getItem('gm_email') || '';
     let currentAlias = localStorage.getItem('gm_alias') || '';
     let checkInterval = null;
     let seenIds = new Set(JSON.parse(localStorage.getItem('gm_seen') || '[]'));
 
-    const BASE = 'https://api.guerrillamail.com/ajax.php';
+    // ============================
+    //  مصادر API مع Proxy بديل
+    // ============================
+    const DIRECT = 'https://api.guerrillamail.com/ajax.php';
+    // نستخدم cors-anywhere كبروكسي احتياطي عند الحاجة
+    const PROXY   = 'https://corsproxy.io/?' + encodeURIComponent(DIRECT);
+
+    let useProxy = false; // يتحول تلقائياً إند فشل الطلب المباشر
+
+    async function apiCall(params) {
+        const qs = new URLSearchParams(params).toString();
+        const directUrl = `${DIRECT}?${qs}`;
+        const proxyUrl  = `${PROXY.replace(encodeURIComponent(DIRECT), encodeURIComponent(DIRECT + '?' + qs))}`;
+
+        // محاولة مباشرة أولاً
+        if (!useProxy) {
+            try {
+                const res = await fetch(directUrl, { signal: AbortSignal.timeout(8000) });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const json = await res.json();
+                return json._oma_data || json;
+            } catch (err) {
+                console.warn('Direct API failed, switching to proxy:', err.message);
+                useProxy = true;
+            }
+        }
+
+        // محاولة عبر بروكسي
+        const finalUrl = `https://corsproxy.io/?${encodeURIComponent(directUrl)}`;
+        const res = await fetch(finalUrl, { signal: AbortSignal.timeout(10000) });
+        if (!res.ok) throw new Error('Proxy HTTP ' + res.status);
+        const json = await res.json();
+        return json._oma_data || json;
+    }
 
     // ============================
     //   تهيئة أو استئناف الجلسة
     // ============================
     async function init() {
         setStatus('loading', 'جاري تحميل بريدك...');
+        disableButtons(true);
 
         if (sidToken && currentEmail) {
-            // استئناف الجلسة القديمة
             document.getElementById('emailDisplay').innerText = currentEmail;
             setStatus('active', 'بريدك جاهز • يتحقق كل 5 ثوانٍ');
             await checkInbox();
         } else {
-            // جلسة جديدة
             await createNewEmail();
         }
 
+        disableButtons(false);
         clearInterval(checkInterval);
         checkInterval = setInterval(checkInbox, 5000);
     }
 
     async function createNewEmail() {
         try {
-            const res = await fetch(`${BASE}?f=get_email_address`);
-            const json = await res.json();
-            const data = json._oma_data || json;
+            const data = await apiCall({ f: 'get_email_address' });
 
-            sidToken = data.sid_token;
-            currentEmail = data.email_addr;
-            currentAlias = data.alias || '';
+            sidToken     = data.sid_token  || '';
+            currentEmail = data.email_addr || '';
+            currentAlias = data.alias      || '';
 
-            localStorage.setItem('gm_sid', sidToken);
+            if (!sidToken || !currentEmail) throw new Error('استجابة API فارغة');
+
+            localStorage.setItem('gm_sid',   sidToken);
             localStorage.setItem('gm_email', currentEmail);
             localStorage.setItem('gm_alias', currentAlias);
 
@@ -179,8 +256,8 @@
             setStatus('active', 'بريدك جاهز • يتحقق كل 5 ثوانٍ');
             await checkInbox();
         } catch (err) {
-            setStatus('error', '⚠️ خطأ في الاتصال بالخادم');
-            console.error('init error:', err);
+            setStatus('error', '⚠️ تعذّر الاتصال بالخادم — تحقق من اتصالك بالإنترنت');
+            console.error('createNewEmail error:', err);
         }
     }
 
@@ -190,15 +267,11 @@
     async function refreshEmail() {
         if (!confirm('هل تريد الحصول على إيميل جديد؟ ستُفقد الرسائل الحالية.')) return;
         clearInterval(checkInterval);
-        sidToken = '';
-        currentEmail = '';
-        currentAlias = '';
+        sidToken = currentEmail = currentAlias = '';
         seenIds.clear();
-        localStorage.removeItem('gm_sid');
-        localStorage.removeItem('gm_email');
-        localStorage.removeItem('gm_alias');
-        localStorage.removeItem('gm_seen');
-        document.getElementById('inbox').innerHTML = '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
+        ['gm_sid','gm_email','gm_alias','gm_seen'].forEach(k => localStorage.removeItem(k));
+        document.getElementById('inbox').innerHTML =
+            '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
         document.getElementById('msgCount').innerText = '';
         await init();
     }
@@ -209,14 +282,12 @@
     async function checkInbox() {
         if (!sidToken) return;
         try {
-            const res = await fetch(`${BASE}?f=get_email_list&offset=0&sid_token=${encodeURIComponent(sidToken)}`);
-            const json = await res.json();
-            const data = json._oma_data || json;
-
+            const data = await apiCall({ f: 'get_email_list', offset: 0, sid_token: sidToken });
             const messages = data.list || [];
             renderInbox(messages);
         } catch (err) {
             console.error('checkInbox error:', err);
+            // لا تُظهر خطأ للمستخدم عند كل دورة فحص — سيُعاد المحاولة تلقائياً
         }
     }
 
@@ -225,19 +296,21 @@
     // ============================
     function renderInbox(messages) {
         const inboxDiv = document.getElementById('inbox');
-        const countEl = document.getElementById('msgCount');
+        const countEl  = document.getElementById('msgCount');
 
         if (!messages || messages.length === 0) {
-            inboxDiv.innerHTML = '<div class="text-center text-gray-600 py-10 italic" id="emptyMsg">في انتظار وصول الرسائل...</div>';
+            inboxDiv.innerHTML =
+                '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
             countEl.innerText = '';
             return;
         }
 
-        // إخفاء رسالة الترحيب التلقائية (mail_id === 1 من guerrillamail)
+        // إخفاء رسالة الترحيب التلقائية من guerrillamail
         const filtered = messages.filter(m => String(m.mail_id) !== '1');
 
         if (filtered.length === 0) {
-            inboxDiv.innerHTML = '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
+            inboxDiv.innerHTML =
+                '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
             countEl.innerText = '';
             return;
         }
@@ -250,13 +323,15 @@
             const div = document.createElement('div');
             div.className = `msg-item p-4 rounded-2xl ${isUnread ? 'unread' : ''}`;
 
+            const excerpt = (msg.mail_excerpt || '').substring(0, 100);
             div.innerHTML = `
                 <div class="flex justify-between items-start gap-2">
                     <div class="font-bold text-blue-400 truncate">${escapeHtml(msg.mail_from)}</div>
                     <div class="text-[11px] text-gray-500 whitespace-nowrap">${escapeHtml(msg.mail_date || '')}</div>
                 </div>
                 <div class="text-sm text-gray-200 mt-1 font-medium">${escapeHtml(msg.mail_subject || '(بدون موضوع)')}</div>
-                <div class="text-xs text-gray-500 mt-1 truncate">${escapeHtml((msg.mail_excerpt || '').substring(0, 100))}...</div>
+                <div class="text-xs text-gray-500 mt-1 truncate">${escapeHtml(excerpt)}${excerpt.length >= 100 ? '...' : ''}</div>
+                ${isUnread ? '<span class="inline-block mt-2 text-[10px] bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded-full">جديد</span>' : ''}
             `;
             div.onclick = () => readMessage(msg.mail_id, div);
             inboxDiv.appendChild(div);
@@ -268,26 +343,24 @@
     // ============================
     async function readMessage(mailId, el) {
         try {
-            const res = await fetch(`${BASE}?f=fetch_email&email_id=${mailId}&sid_token=${encodeURIComponent(sidToken)}`);
-            const json = await res.json();
-            const data = json._oma_data || json;
+            const data = await apiCall({ f: 'fetch_email', email_id: mailId, sid_token: sidToken });
 
             document.getElementById('modalSubject').innerText = data.mail_subject || '(بدون موضوع)';
-            document.getElementById('modalFrom').innerText = data.mail_from || '';
-            document.getElementById('modalDate').innerText = data.mail_date || '';
+            document.getElementById('modalFrom').innerText    = data.mail_from   || '';
+            document.getElementById('modalDate').innerText    = data.mail_date   || '';
 
-            // عرض النص الكامل
-            const body = data.mail_body || data.mail_excerpt || '';
+            const body    = data.mail_body || data.mail_excerpt || '';
             const bodyDiv = document.getElementById('modalBody');
 
-            // إذا كان HTML اعرضه في iframe آمن
             if (data.content_type === 'html' || body.trim().startsWith('<')) {
                 const blob = new Blob([body], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                bodyDiv.innerHTML = `<iframe src="${url}" class="w-full rounded-xl border border-white/10"
-                    style="height:350px; background:white;" sandbox="allow-same-origin"></iframe>`;
+                const url  = URL.createObjectURL(blob);
+                bodyDiv.innerHTML =
+                    `<iframe src="${url}" class="w-full rounded-xl border border-white/10"
+                        style="height:350px; background:white;" sandbox="allow-same-origin"></iframe>`;
             } else {
-                bodyDiv.innerHTML = `<pre class="text-sm text-gray-200 leading-relaxed">${escapeHtml(body)}</pre>`;
+                bodyDiv.innerHTML =
+                    `<pre class="text-sm text-gray-200 leading-relaxed">${escapeHtml(body)}</pre>`;
             }
 
             document.getElementById('msgModal').classList.add('active');
@@ -295,46 +368,83 @@
             // تحديد كمقروء
             seenIds.add(String(mailId));
             localStorage.setItem('gm_seen', JSON.stringify([...seenIds]));
-            if (el) el.classList.remove('unread');
-
+            if (el) {
+                el.classList.remove('unread');
+                const badge = el.querySelector('span.bg-blue-600\\/30');
+                if (badge) badge.remove();
+            }
         } catch (e) {
             alert('خطأ في قراءة الرسالة: ' + e.message);
         }
     }
 
     // ============================
-    //   مساعد: إغلاق المودال
+    //   إغلاق المودال
     // ============================
     function closeModal(e) {
         if (e.target.id === 'msgModal') {
             document.getElementById('msgModal').classList.remove('active');
         }
     }
+    // ESC لإغلاق المودال
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') document.getElementById('msgModal').classList.remove('active');
+    });
 
     // ============================
-    //   نسخ الإيميل
+    //   نسخ الإيميل — مُصلَح
     // ============================
     function copyEmail() {
         const email = document.getElementById('emailDisplay').innerText.trim();
         if (!email || email === 'جاري التحميل...') return;
-        navigator.clipboard.writeText(email).then(() => {
-            const btn = document.querySelector('.copy-btn');
-            btn.innerText = '✅ تم النسخ';
-            setTimeout(() => btn.innerHTML = '📋 نسخ', 1500);
-        });
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(email).then(showCopyToast).catch(fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+
+        function fallbackCopy() {
+            // طريقة بديلة للمتصفحات القديمة
+            const ta = document.createElement('textarea');
+            ta.value = email;
+            ta.style.cssText = 'position:fixed;top:-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            showCopyToast();
+        }
+    }
+
+    function showCopyToast() {
+        const t = document.getElementById('copyToast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
     }
 
     // ============================
-    //   إعداد شريط الحالة
+    //   تعطيل/تفعيل الأزرار
+    // ============================
+    function disableButtons(disabled) {
+        document.getElementById('btnCopy').disabled = disabled;
+        document.getElementById('btnNew').disabled  = disabled;
+        document.getElementById('btnCopy').style.opacity = disabled ? '0.5' : '1';
+        document.getElementById('btnNew').style.opacity  = disabled ? '0.5' : '1';
+    }
+
+    // ============================
+    //   شريط الحالة
     // ============================
     function setStatus(type, msg) {
         const el = document.getElementById('status');
         if (type === 'loading') {
             el.innerHTML = `<span class="spinner"></span><span class="text-gray-400">${msg}</span>`;
         } else if (type === 'active') {
-            el.innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full inline-block"></span><span class="text-green-400">${msg}</span>`;
+            el.innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full inline-block flex-shrink-0"></span><span class="text-green-400">${msg}</span>`;
         } else if (type === 'error') {
-            el.innerHTML = `<span class="text-red-400">${msg}</span>`;
+            el.innerHTML = `<span class="text-red-400">${msg}</span>
+                <button onclick="init()" class="mr-2 text-xs underline text-blue-400 hover:text-blue-300">إعادة المحاولة</button>`;
         }
     }
 
