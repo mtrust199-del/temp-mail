@@ -3,98 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صندوق الوارد | تم التأكيد من Gmail</title>
+    <title>بريد مؤقت | صندوق الوارد</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .msg-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        .msg-item:hover { background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .msg-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .msg-item:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+        .msg-item.unread {
+            border-right: 3px solid #3b82f6;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .copy-btn:active { transform: scale(0.95); }
+        pre { white-space: pre-wrap; word-break: break-word; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-6 min-h-screen">
 
-    <div class="max-w-2xl mx-auto text-center">
-        <div class="glass p-8 rounded-3xl shadow-2xl border-t-4 border-blue-500">
-            <h1 class="text-blue-400 text-lg mb-2">بريدك المؤقت جاهز</h1>
-            <div id="emailDisplay" class="text-2xl font-mono bg-black/40 p-4 rounded-xl mb-4 border border-blue-900/50 select-all">
-                جاري التحميل...
+    <div class="max-w-2xl mx-auto">
+
+        <!-- ترويسة البريد -->
+        <div class="glass p-8 rounded-3xl shadow-2xl border-t-4 border-blue-500 text-center mb-8">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <h1 class="text-blue-400 text-lg font-semibold">بريدك المؤقت جاهز</h1>
             </div>
-            <p id="status" class="text-sm text-gray-400 animate-pulse">يتم فحص البريد الآن...</p>
+
+            <!-- عرض الإيميل مع زر نسخ -->
+            <div class="flex items-center gap-2 justify-center mb-4">
+                <div id="emailDisplay"
+                    class="text-xl font-mono bg-black/40 px-5 py-3 rounded-xl border border-blue-900/50 select-all flex-1 text-center">
+                    جاري التحميل...
+                </div>
+                <button onclick="copyEmail()" title="نسخ"
+                    class="copy-btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl transition text-sm font-bold whitespace-nowrap">
+                    📋 نسخ
+                </button>
+                <button onclick="refreshEmail()" title="تجديد الإيميل"
+                    class="copy-btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-xl transition text-sm font-bold whitespace-nowrap">
+                    🔄 جديد
+                </button>
+            </div>
+
+            <!-- شريط الحالة -->
+            <div id="status" class="text-sm text-gray-400 flex items-center justify-center gap-2">
+                <span class="spinner"></span>
+                <span>يتم تحميل البريد...</span>
+            </div>
         </div>
 
-        <div class="mt-8 text-right">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <span class="w-3 h-3 bg-green-500 rounded-full"></span> صندوق الوارد
-            </h2>
+        <!-- صندوق الوارد -->
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <span id="inboxDot" class="w-3 h-3 bg-green-500 rounded-full"></span>
+                    صندوق الوارد
+                </h2>
+                <span id="msgCount" class="text-sm text-gray-500"></span>
+            </div>
+
             <div id="inbox" class="space-y-3 min-h-[200px]">
-                <div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسالة من Gmail...</div>
+                <div class="text-center text-gray-600 py-10 italic" id="emptyMsg">
+                    في انتظار وصول الرسائل...
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- نافذة قراءة الرسالة -->
+    <div class="modal-overlay" id="msgModal" onclick="closeModal(event)">
+        <div class="modal-box">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="modalSubject" class="text-lg font-bold text-blue-300 flex-1 pl-4"></h3>
+                <button onclick="document.getElementById('msgModal').classList.remove('active')"
+                    class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="text-sm text-gray-400 mb-1">من: <span id="modalFrom" class="text-gray-200"></span></div>
+            <div class="text-sm text-gray-400 mb-4">التاريخ: <span id="modalDate" class="text-gray-200"></span></div>
+            <hr class="border-white/10 mb-4">
+            <div id="modalBody" class="text-sm text-gray-200 leading-relaxed"></div>
+        </div>
+    </div>
+
     <script>
-        // تثبيت الهوية لضمان عدم ضياع الرسالة عند التحديث
-        const user = localStorage.getItem('tmp_v4') || Math.random().toString(36).substring(2, 10);
-        const domain = "1secmail.com";
-        localStorage.setItem('tmp_v4', user);
+    // ============================
+    //   متغيرات عامة
+    // ============================
+    let sidToken = localStorage.getItem('gm_sid') || '';
+    let currentEmail = localStorage.getItem('gm_email') || '';
+    let currentAlias = localStorage.getItem('gm_alias') || '';
+    let checkInterval = null;
+    let seenIds = new Set(JSON.parse(localStorage.getItem('gm_seen') || '[]'));
 
-        const email = `${user}@${domain}`;
-        document.getElementById('emailDisplay').innerText = email;
+    const BASE = 'https://api.guerrillamail.com/ajax.php';
 
-        async function checkInbox() {
-            // استخدام وسيط AllOrigins لفك حماية المتصفح
-            const targetUrl = `https://www.1secmail.com/api/v1/?action=getMessages&login=${user}&domain=${domain}`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // ============================
+    //   تهيئة أو استئناف الجلسة
+    // ============================
+    async function init() {
+        setStatus('loading', 'جاري تحميل بريدك...');
 
-            try {
-                const res = await fetch(proxyUrl);
-                const json = await res.json();
-                const messages = JSON.parse(json.contents); // استخراج البيانات الحقيقية من الوسيط
-
-                const inboxDiv = document.getElementById('inbox');
-                const status = document.getElementById('status');
-
-                if (messages.length > 0) {
-                    status.innerText = `تم وصول ${messages.length} رسالة!`;
-                    status.classList.remove('text-gray-400');
-                    status.classList.add('text-green-400');
-                    
-                    inboxDiv.innerHTML = "";
-                    messages.forEach(msg => {
-                        const div = document.createElement('div');
-                        div.className = "msg-item p-4 rounded-2xl cursor-pointer";
-                        div.innerHTML = `
-                            <div class="font-bold text-blue-400">${msg.from}</div>
-                            <div class="text-sm text-gray-200">${msg.subject}</div>
-                            <div class="text-[10px] text-gray-500 mt-1">${msg.date}</div>
-                        `;
-                        div.onclick = () => readMessage(msg.id);
-                        inboxDiv.appendChild(div);
-                    });
-                }
-            } catch (err) {
-                console.error("Error:", err);
-            }
+        if (sidToken && currentEmail) {
+            // استئناف الجلسة القديمة
+            document.getElementById('emailDisplay').innerText = currentEmail;
+            setStatus('active', 'بريدك جاهز • يتحقق كل 5 ثوانٍ');
+            await checkInbox();
+        } else {
+            // جلسة جديدة
+            await createNewEmail();
         }
 
-        async function readMessage(id) {
-            const targetUrl = `https://www.1secmail.com/api/v1/?action=readMessage&login=${user}&domain=${domain}&id=${id}`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            
-            try {
-                const res = await fetch(proxyUrl);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
-                alert(`من: ${data.from}\nالموضوع: ${data.subject}\n\nالنص:\n${data.textBody}`);
-            } catch (e) {
-                alert("خطأ في قراءة الرسالة");
-            }
+        clearInterval(checkInterval);
+        checkInterval = setInterval(checkInbox, 5000);
+    }
+
+    async function createNewEmail() {
+        try {
+            const res = await fetch(`${BASE}?f=get_email_address`);
+            const json = await res.json();
+            const data = json._oma_data || json;
+
+            sidToken = data.sid_token;
+            currentEmail = data.email_addr;
+            currentAlias = data.alias || '';
+
+            localStorage.setItem('gm_sid', sidToken);
+            localStorage.setItem('gm_email', currentEmail);
+            localStorage.setItem('gm_alias', currentAlias);
+
+            document.getElementById('emailDisplay').innerText = currentEmail;
+            setStatus('active', 'بريدك جاهز • يتحقق كل 5 ثوانٍ');
+            await checkInbox();
+        } catch (err) {
+            setStatus('error', '⚠️ خطأ في الاتصال بالخادم');
+            console.error('init error:', err);
+        }
+    }
+
+    // ============================
+    //   تجديد الإيميل
+    // ============================
+    async function refreshEmail() {
+        if (!confirm('هل تريد الحصول على إيميل جديد؟ ستُفقد الرسائل الحالية.')) return;
+        clearInterval(checkInterval);
+        sidToken = '';
+        currentEmail = '';
+        currentAlias = '';
+        seenIds.clear();
+        localStorage.removeItem('gm_sid');
+        localStorage.removeItem('gm_email');
+        localStorage.removeItem('gm_alias');
+        localStorage.removeItem('gm_seen');
+        document.getElementById('inbox').innerHTML = '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
+        document.getElementById('msgCount').innerText = '';
+        await init();
+    }
+
+    // ============================
+    //   فحص صندوق الوارد
+    // ============================
+    async function checkInbox() {
+        if (!sidToken) return;
+        try {
+            const res = await fetch(`${BASE}?f=get_email_list&offset=0&sid_token=${encodeURIComponent(sidToken)}`);
+            const json = await res.json();
+            const data = json._oma_data || json;
+
+            const messages = data.list || [];
+            renderInbox(messages);
+        } catch (err) {
+            console.error('checkInbox error:', err);
+        }
+    }
+
+    // ============================
+    //   رسم الرسائل
+    // ============================
+    function renderInbox(messages) {
+        const inboxDiv = document.getElementById('inbox');
+        const countEl = document.getElementById('msgCount');
+
+        if (!messages || messages.length === 0) {
+            inboxDiv.innerHTML = '<div class="text-center text-gray-600 py-10 italic" id="emptyMsg">في انتظار وصول الرسائل...</div>';
+            countEl.innerText = '';
+            return;
         }
 
-        // فحص كل 5 ثواني
-        setInterval(checkInbox, 5000);
-        checkInbox();
+        // إخفاء رسالة الترحيب التلقائية (mail_id === 1 من guerrillamail)
+        const filtered = messages.filter(m => String(m.mail_id) !== '1');
+
+        if (filtered.length === 0) {
+            inboxDiv.innerHTML = '<div class="text-center text-gray-600 py-10 italic">في انتظار وصول الرسائل...</div>';
+            countEl.innerText = '';
+            return;
+        }
+
+        countEl.innerText = `${filtered.length} رسالة`;
+        inboxDiv.innerHTML = '';
+
+        filtered.forEach(msg => {
+            const isUnread = !seenIds.has(String(msg.mail_id)) && msg.mail_read == 0;
+            const div = document.createElement('div');
+            div.className = `msg-item p-4 rounded-2xl ${isUnread ? 'unread' : ''}`;
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start gap-2">
+                    <div class="font-bold text-blue-400 truncate">${escapeHtml(msg.mail_from)}</div>
+                    <div class="text-[11px] text-gray-500 whitespace-nowrap">${escapeHtml(msg.mail_date || '')}</div>
+                </div>
+                <div class="text-sm text-gray-200 mt-1 font-medium">${escapeHtml(msg.mail_subject || '(بدون موضوع)')}</div>
+                <div class="text-xs text-gray-500 mt-1 truncate">${escapeHtml((msg.mail_excerpt || '').substring(0, 100))}...</div>
+            `;
+            div.onclick = () => readMessage(msg.mail_id, div);
+            inboxDiv.appendChild(div);
+        });
+    }
+
+    // ============================
+    //   قراءة رسالة
+    // ============================
+    async function readMessage(mailId, el) {
+        try {
+            const res = await fetch(`${BASE}?f=fetch_email&email_id=${mailId}&sid_token=${encodeURIComponent(sidToken)}`);
+            const json = await res.json();
+            const data = json._oma_data || json;
+
+            document.getElementById('modalSubject').innerText = data.mail_subject || '(بدون موضوع)';
+            document.getElementById('modalFrom').innerText = data.mail_from || '';
+            document.getElementById('modalDate').innerText = data.mail_date || '';
+
+            // عرض النص الكامل
+            const body = data.mail_body || data.mail_excerpt || '';
+            const bodyDiv = document.getElementById('modalBody');
+
+            // إذا كان HTML اعرضه في iframe آمن
+            if (data.content_type === 'html' || body.trim().startsWith('<')) {
+                const blob = new Blob([body], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                bodyDiv.innerHTML = `<iframe src="${url}" class="w-full rounded-xl border border-white/10"
+                    style="height:350px; background:white;" sandbox="allow-same-origin"></iframe>`;
+            } else {
+                bodyDiv.innerHTML = `<pre class="text-sm text-gray-200 leading-relaxed">${escapeHtml(body)}</pre>`;
+            }
+
+            document.getElementById('msgModal').classList.add('active');
+
+            // تحديد كمقروء
+            seenIds.add(String(mailId));
+            localStorage.setItem('gm_seen', JSON.stringify([...seenIds]));
+            if (el) el.classList.remove('unread');
+
+        } catch (e) {
+            alert('خطأ في قراءة الرسالة: ' + e.message);
+        }
+    }
+
+    // ============================
+    //   مساعد: إغلاق المودال
+    // ============================
+    function closeModal(e) {
+        if (e.target.id === 'msgModal') {
+            document.getElementById('msgModal').classList.remove('active');
+        }
+    }
+
+    // ============================
+    //   نسخ الإيميل
+    // ============================
+    function copyEmail() {
+        const email = document.getElementById('emailDisplay').innerText.trim();
+        if (!email || email === 'جاري التحميل...') return;
+        navigator.clipboard.writeText(email).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            btn.innerText = '✅ تم النسخ';
+            setTimeout(() => btn.innerHTML = '📋 نسخ', 1500);
+        });
+    }
+
+    // ============================
+    //   إعداد شريط الحالة
+    // ============================
+    function setStatus(type, msg) {
+        const el = document.getElementById('status');
+        if (type === 'loading') {
+            el.innerHTML = `<span class="spinner"></span><span class="text-gray-400">${msg}</span>`;
+        } else if (type === 'active') {
+            el.innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full inline-block"></span><span class="text-green-400">${msg}</span>`;
+        } else if (type === 'error') {
+            el.innerHTML = `<span class="text-red-400">${msg}</span>`;
+        }
+    }
+
+    // ============================
+    //   escape HTML
+    // ============================
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // بدء التطبيق
+    init();
     </script>
 </body>
 </html>
