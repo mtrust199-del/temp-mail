@@ -15,485 +15,446 @@
         .msg-item {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.3s;
-            cursor: pointer;
+            transition: 0.3s; cursor: pointer;
         }
-        .msg-item:hover {
-            background: rgba(59,130,246,0.15);
-            border-color: #3b82f6;
-        }
+        .msg-item:hover { background: rgba(59,130,246,0.15); border-color: #3b82f6; }
         .msg-item.unread { border-right: 3px solid #3b82f6; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner {
-            width: 18px; height: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: inline-block; flex-shrink: 0;
+            width:18px; height:18px;
+            border:2px solid rgba(255,255,255,0.2);
+            border-top-color:#3b82f6;
+            border-radius:50%;
+            animation:spin 0.8s linear infinite;
+            display:inline-block; flex-shrink:0;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from{opacity:0;transform:translateY(-6px);}
+            to{opacity:1;transform:translateY(0);}
         }
-        .msg-item { animation: fadeIn 0.3s ease forwards; }
+        .msg-item{animation:fadeIn 0.3s ease forwards;}
 
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.75); z-index: 50;
-            align-items: center; justify-content: center;
+        .modal-overlay{
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.78); z-index:50;
+            align-items:center; justify-content:center;
         }
-        .modal-overlay.active { display: flex; }
-        .modal-box {
-            background: #1e293b;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 1.5rem; padding: 2rem;
-            max-width: 620px; width: 90%; max-height: 82vh; overflow-y: auto;
+        .modal-overlay.active{display:flex;}
+        .modal-box{
+            background:#1e293b;
+            border:1px solid rgba(255,255,255,0.15);
+            border-radius:1.5rem; padding:2rem;
+            max-width:620px; width:90%; max-height:82vh; overflow-y:auto;
         }
+        .btn{transition:transform 0.15s,opacity 0.2s;}
+        .btn:active{transform:scale(0.95);}
+        .btn:disabled{opacity:0.4; cursor:not-allowed;}
 
-        .btn { transition: transform 0.15s, opacity 0.2s; }
-        .btn:active { transform: scale(0.95); }
-        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-        /* Domain picker */
-        .domain-tag {
-            cursor: pointer; transition: 0.2s;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.12);
+        .domain-tag{
+            cursor:pointer; transition:0.2s;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.12);
         }
-        .domain-tag:hover { border-color: #60a5fa; background: rgba(96,165,250,0.12); }
-        .domain-tag.active {
-            background: rgba(59,130,246,0.25);
-            border-color: #3b82f6; color: #93c5fd; font-weight: bold;
-        }
+        .domain-tag:hover{border-color:#60a5fa; background:rgba(96,165,250,0.12);}
+        .domain-tag.sel{background:rgba(59,130,246,0.28); border-color:#3b82f6; color:#93c5fd; font-weight:700;}
 
-        /* Provider tabs */
-        .prov-tab {
-            cursor: pointer; transition: 0.2s; border-bottom: 2px solid transparent;
-            padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #64748b;
+        .prov-tab{
+            cursor:pointer; transition:0.2s;
+            border-bottom:2px solid transparent;
+            padding:0.4rem 0.8rem; font-size:0.8rem; color:#64748b;
         }
-        .prov-tab.active { border-color: #3b82f6; color: #93c5fd; }
+        .prov-tab.active{border-color:#3b82f6; color:#93c5fd;}
 
-        /* Toast */
-        #toast {
-            position: fixed; bottom: 2rem; left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            padding: 0.55rem 1.3rem; border-radius: 999px;
-            font-weight: bold; font-size: 0.85rem;
-            transition: transform 0.3s ease; z-index: 200; pointer-events: none;
+        #toast{
+            position:fixed; bottom:2rem; left:50%;
+            transform:translateX(-50%) translateY(80px);
+            padding:0.55rem 1.3rem; border-radius:999px;
+            font-weight:bold; font-size:0.85rem;
+            transition:transform 0.3s ease; z-index:200; pointer-events:none;
         }
-        #toast.show { transform: translateX(-50%) translateY(0); }
-        #toast.success { background:#22c55e; color:#fff; }
-        #toast.error   { background:#ef4444; color:#fff; }
-        #toast.info    { background:#3b82f6; color:#fff; }
+        #toast.show{transform:translateX(-50%) translateY(0);}
+        #toast.ok {background:#22c55e;color:#fff;}
+        #toast.err{background:#ef4444;color:#fff;}
+        #toast.inf{background:#3b82f6;color:#fff;}
 
-        pre { white-space: pre-wrap; word-break: break-word; }
+        pre{white-space:pre-wrap;word-break:break-word;}
+
+        /* progress bar */
+        #prog{
+            position:fixed; top:0; left:0; height:2px;
+            background:#3b82f6; width:0; z-index:300;
+            transition:width 0.3s ease;
+        }
     </style>
 </head>
 <body class="p-4 min-h-screen">
 
-    <div id="toast"></div>
+<div id="prog"></div>
+<div id="toast"></div>
 
-    <div class="max-w-2xl mx-auto space-y-6">
+<div class="max-w-2xl mx-auto space-y-5">
 
-        <!-- ترويسة -->
-        <div class="glass p-6 rounded-3xl shadow-2xl border-t-4 border-blue-500">
+    <!-- ترويسة -->
+    <div class="glass p-6 rounded-3xl shadow-2xl border-t-4 border-blue-500">
 
-            <!-- عنوان -->
-            <div class="flex items-center justify-center gap-2 mb-4">
-                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                <h1 class="text-blue-400 text-lg font-bold">بريدك المؤقت</h1>
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <h1 class="text-blue-400 text-lg font-bold">بريدك المؤقت</h1>
+        </div>
+
+        <!-- تبويبات المزودين -->
+        <div class="flex justify-center gap-1 mb-4 border-b border-white/10 pb-2">
+            <div class="prov-tab active" id="tab-1sec" onclick="switchProvider('1secmail')">
+                🔷 1SecMail
+                <span class="text-[10px] bg-green-500/20 text-green-400 px-1 rounded mr-1">موصى به</span>
             </div>
-
-            <!-- مزودو الخدمة -->
-            <div class="flex justify-center gap-1 mb-4 border-b border-white/10 pb-2">
-                <div class="prov-tab active" id="tab-1secmail" onclick="switchProvider('1secmail')">
-                    🔷 1SecMail <span class="text-[10px] bg-green-500/20 text-green-400 px-1 rounded">موصى به</span>
-                </div>
-                <div class="prov-tab" id="tab-guerrilla" onclick="switchProvider('guerrilla')">
-                    🔶 GuerrilaMail
-                </div>
-            </div>
-
-            <!-- اختيار النطاق (1secmail فقط) -->
-            <div id="domainPicker" class="mb-4">
-                <p class="text-xs text-gray-500 mb-2 text-center">اختر نطاقاً — بعض المواقع تحجب نطاقات معينة:</p>
-                <div id="domainList" class="flex flex-wrap gap-2 justify-center text-xs"></div>
-            </div>
-
-            <!-- حقل البريد + أزرار -->
-            <div class="flex items-center gap-2 flex-row-reverse mb-4">
-                <div class="flex gap-2 flex-shrink-0">
-                    <button id="btnCopy" onclick="copyEmail()"
-                        class="btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap">
-                        📋 نسخ
-                    </button>
-                    <button id="btnNew" onclick="refreshEmail()"
-                        class="btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap">
-                        🔄 جديد
-                    </button>
-                </div>
-                <div id="emailDisplay"
-                    class="text-sm font-mono bg-black/40 px-4 py-2.5 rounded-xl border border-blue-900/50 select-all flex-1 text-center truncate text-blue-100">
-                    جاري التحميل...
-                </div>
-            </div>
-
-            <!-- شريط الحالة -->
-            <div id="status" class="text-sm text-gray-400 flex items-center justify-center gap-2">
-                <span class="spinner"></span>
-                <span>يتم تحميل البريد...</span>
+            <div class="prov-tab" id="tab-gm" onclick="switchProvider('guerrilla')">
+                🔶 GuerrilaMail
             </div>
         </div>
 
-        <!-- صندوق الوارد -->
-        <div>
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-bold flex items-center gap-2">
-                    <span id="inboxDot" class="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
-                    صندوق الوارد
-                </h2>
-                <div class="flex items-center gap-3">
-                    <span id="msgCount" class="text-xs text-gray-500"></span>
-                    <button onclick="manualRefresh()" title="تحديث"
-                        class="btn text-gray-400 hover:text-white text-xl leading-none px-1" id="refreshBtn">⟳</button>
-                </div>
-            </div>
+        <!-- اختيار النطاق -->
+        <div id="domainRow" class="mb-4">
+            <p class="text-[11px] text-gray-500 mb-2 text-center">
+                💡 إذا لم يصلك بريد من موقع — جرب نطاقاً مختلفاً:
+            </p>
+            <div id="domainList" class="flex flex-wrap gap-2 justify-center text-xs"></div>
+        </div>
 
-            <div id="inbox" class="space-y-3 min-h-[180px]">
-                <div class="text-center text-gray-600 py-10 italic text-sm">
-                    في انتظار وصول الرسائل...
-                </div>
+        <!-- حقل البريد + أزرار -->
+        <div class="flex items-center gap-2 flex-row-reverse mb-4">
+            <div class="flex gap-2 flex-shrink-0">
+                <button id="btnCopy" onclick="copyEmail()"
+                    class="btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap">
+                    📋 نسخ
+                </button>
+                <button id="btnNew" onclick="refreshEmail()"
+                    class="btn bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap">
+                    🔄 جديد
+                </button>
             </div>
+            <div id="emailDisplay"
+                class="text-sm font-mono bg-black/40 px-4 py-2.5 rounded-xl border border-blue-900/50 select-all flex-1 text-center truncate text-blue-100 min-w-0">
+                جاري التحميل...
+            </div>
+        </div>
+
+        <!-- الحالة -->
+        <div id="status" class="text-sm flex items-center justify-center gap-2 text-gray-400">
+            <span class="spinner"></span>
+            <span>يتم الاتصال...</span>
         </div>
     </div>
 
-    <!-- مودال قراءة الرسالة -->
-    <div class="modal-overlay" id="msgModal" onclick="closeModal(event)">
-        <div class="modal-box">
-            <div class="flex justify-between items-start mb-4">
-                <h3 id="modalSubject" class="text-base font-bold text-blue-300 flex-1 pl-4 leading-snug"></h3>
-                <button onclick="document.getElementById('msgModal').classList.remove('active')"
-                    class="text-gray-400 hover:text-white text-2xl leading-none flex-shrink-0">&times;</button>
+    <!-- صندوق الوارد -->
+    <div>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+                <span class="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+                صندوق الوارد
+            </h2>
+            <div class="flex items-center gap-3">
+                <span id="msgCount" class="text-xs text-gray-500"></span>
+                <button onclick="manualRefresh()" id="refreshBtn"
+                    class="btn text-gray-400 hover:text-white text-xl px-1" title="تحديث">⟳</button>
             </div>
-            <div class="text-sm text-gray-400 mb-1">من: <span id="modalFrom" class="text-gray-200 break-all"></span></div>
-            <div class="text-sm text-gray-400 mb-4">التاريخ: <span id="modalDate" class="text-gray-200"></span></div>
-            <hr class="border-white/10 mb-4">
-            <div id="modalBody" class="text-sm text-gray-200 leading-relaxed"></div>
+        </div>
+        <div id="inbox" class="space-y-3 min-h-[160px]">
+            <div class="text-center text-gray-600 py-10 italic text-sm">في انتظار وصول الرسائل...</div>
         </div>
     </div>
+</div>
+
+<!-- مودال الرسالة -->
+<div class="modal-overlay" id="msgModal" onclick="closeModal(event)">
+    <div class="modal-box">
+        <div class="flex justify-between items-start mb-4">
+            <h3 id="modalSubject" class="text-base font-bold text-blue-300 flex-1 pl-4 leading-snug"></h3>
+            <button onclick="document.getElementById('msgModal').classList.remove('active')"
+                class="text-gray-400 hover:text-white text-2xl leading-none flex-shrink-0">&times;</button>
+        </div>
+        <div class="text-sm text-gray-400 mb-1">من: <span id="modalFrom" class="text-gray-200 break-all"></span></div>
+        <div class="text-sm text-gray-400 mb-4">التاريخ: <span id="modalDate" class="text-gray-200"></span></div>
+        <hr class="border-white/10 mb-4">
+        <div id="modalBody" class="text-sm text-gray-200 leading-relaxed"></div>
+    </div>
+</div>
 
 <script>
-// ============================================================
-//  الإعدادات والحالة العامة
-// ============================================================
-let provider   = localStorage.getItem('gm_provider') || '1secmail';
-let currentEmail = localStorage.getItem('gm_email')  || '';
-let login      = localStorage.getItem('gm_login')    || '';
-let domain     = localStorage.getItem('gm_domain')   || '';
-let sidToken   = localStorage.getItem('gm_sid')      || '';
-let seenIds    = new Set(JSON.parse(localStorage.getItem('gm_seen') || '[]'));
-let checkInterval = null;
+// ═══════════════════════════════════════════════════════════
+//  نظام البروكسي الذكي — يجرب كل خيار تلقائياً حتى ينجح
+// ═══════════════════════════════════════════════════════════
+const PROXIES = [
+    url => url,                                                       // مباشر أولاً
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,        // بروكسي 1
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, // بروكسي 2
+    url => `https://thingproxy.freeboard.io/fetch/${url}`,           // بروكسي 3
+];
 
-// نطاقات 1secmail المتاحة (محدّثة)
+let proxyIdx = parseInt(localStorage.getItem('gm_proxy') || '0');
+
+async function smartFetch(url, opts = {}) {
+    const start = proxyIdx;
+    // جرب من البروكسي الحالي إلى الأخير
+    for (let i = 0; i < PROXIES.length; i++) {
+        const idx = (start + i) % PROXIES.length;
+        const finalUrl = PROXIES[idx](url);
+        try {
+            const res = await fetch(finalUrl, {
+                ...opts,
+                signal: AbortSignal.timeout(9000)
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const text = await res.text();
+            // allorigins يُغلّف النتيجة
+            if (finalUrl.includes('allorigins')) {
+                try {
+                    const wrapped = JSON.parse(text);
+                    const inner = wrapped.contents || text;
+                    const json = JSON.parse(inner);
+                    proxyIdx = idx;
+                    localStorage.setItem('gm_proxy', idx);
+                    return json;
+                } catch { /* تجاهل */ }
+            }
+            const json = JSON.parse(text);
+            proxyIdx = idx;
+            localStorage.setItem('gm_proxy', idx);
+            return json;
+        } catch (e) {
+            console.warn(`Proxy[${idx}] failed for ${url.substring(0, 60)}:`, e.message);
+        }
+    }
+    throw new Error('فشلت جميع محاولات الاتصال');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  الحالة العامة
+// ═══════════════════════════════════════════════════════════
+let provider  = localStorage.getItem('gm_provider') || '1secmail';
+let email     = localStorage.getItem('gm_email')    || '';
+let login     = localStorage.getItem('gm_login')    || '';
+let domain    = localStorage.getItem('gm_domain')   || '';
+let sid       = localStorage.getItem('gm_sid')      || '';
+let seenIds   = new Set(JSON.parse(localStorage.getItem('gm_seen') || '[]'));
+let interval  = null;
+
 const DOMAINS_1SEC = [
     '1secmail.com','1secmail.org','1secmail.net',
     'wwjmp.com','esiix.com','xojxe.com','yoggm.com'
 ];
-let selectedDomain = localStorage.getItem('gm_sel_domain') || DOMAINS_1SEC[0];
+let selDomain = localStorage.getItem('gm_sel_domain') || DOMAINS_1SEC[0];
 
-// ============================================================
-//  مزود 1secmail
-// ============================================================
-const API_1SEC = 'https://www.1secmail.com/api/v1/';
-
-async function createEmail_1sec() {
-    const res  = await fetch(`${API_1SEC}?action=genRandomMailbox&count=1`);
-    const data = await res.json();
-    const full = data[0]; // e.g. "abc123@1secmail.com"
-    const [l, d] = full.split('@');
-
-    // إذا طلب المستخدم نطاقاً محدداً نستخدم اسم المستخدم العشوائي مع نطاقه
+// ═══════════════════════════════════════════════════════════
+//  1SecMail
+// ═══════════════════════════════════════════════════════════
+async function create_1sec() {
+    const data = await smartFetch('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
+    const arr  = Array.isArray(data) ? data : (data.list || [data]);
+    const full = arr[0];
+    const [l]  = full.split('@');
     login  = l;
-    domain = selectedDomain;
-    currentEmail = `${login}@${domain}`;
-
-    localStorage.setItem('gm_login',  login);
-    localStorage.setItem('gm_domain', domain);
-    localStorage.setItem('gm_email',  currentEmail);
+    domain = selDomain;
+    email  = `${login}@${domain}`;
+    save({ gm_login: login, gm_domain: domain, gm_email: email });
 }
 
-async function getMessages_1sec() {
-    const url = `${API_1SEC}?action=getMessages&login=${encodeURIComponent(login)}&domain=${encodeURIComponent(domain)}`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-}
-
-async function readMessage_1sec(id) {
-    const url = `${API_1SEC}?action=readMessage&login=${encodeURIComponent(login)}&domain=${encodeURIComponent(domain)}&id=${id}`;
-    const res  = await fetch(url);
-    return await res.json();
-}
-
-// ============================================================
-//  مزود Guerrilla Mail
-// ============================================================
-const GM_BASE = 'https://api.guerrillamail.com/ajax.php';
-let gmUseProxy = false;
-
-async function gmFetch(params) {
-    const qs = new URLSearchParams(params).toString();
-    const direct = `${GM_BASE}?${qs}`;
-    if (!gmUseProxy) {
-        try {
-            const r = await fetch(direct, { signal: AbortSignal.timeout(8000) });
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            const j = await r.json();
-            return j._oma_data || j;
-        } catch (e) {
-            gmUseProxy = true;
-            console.warn('Guerrilla direct failed, using proxy:', e.message);
-        }
-    }
-    const proxy = `https://corsproxy.io/?${encodeURIComponent(direct)}`;
-    const r = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
-    const j = await r.json();
-    return j._oma_data || j;
-}
-
-async function createEmail_gm() {
-    const data = await gmFetch({ f: 'get_email_address' });
-    sidToken     = data.sid_token  || '';
-    currentEmail = data.email_addr || '';
-    if (!sidToken || !currentEmail) throw new Error('استجابة فارغة من Guerrilla Mail');
-    localStorage.setItem('gm_sid',   sidToken);
-    localStorage.setItem('gm_email', currentEmail);
-}
-
-async function getMessages_gm() {
-    if (!sidToken) return [];
-    const data = await gmFetch({ f: 'get_email_list', offset: 0, sid_token: sidToken });
-    const list = data.list || [];
-    return list.filter(m => String(m.mail_id) !== '1').map(m => ({
-        id: m.mail_id, from: m.mail_from, subject: m.mail_subject,
-        date: m.mail_date, excerpt: m.mail_excerpt, read: m.mail_read
+async function list_1sec() {
+    const url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${encodeURIComponent(login)}&domain=${encodeURIComponent(domain)}`;
+    const data = await smartFetch(url);
+    const arr  = Array.isArray(data) ? data : [];
+    return arr.map(m => ({
+        id: m.id, from: m.from, subject: m.subject,
+        date: m.date, excerpt: m.subject || '', read: false
     }));
 }
 
-async function readMessage_gm(id) {
-    const data = await gmFetch({ f: 'fetch_email', email_id: id, sid_token: sidToken });
+async function read_1sec(id) {
+    const url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${encodeURIComponent(login)}&domain=${encodeURIComponent(domain)}&id=${id}`;
+    const d = await smartFetch(url);
     return {
-        subject: data.mail_subject, from: data.mail_from,
-        date: data.mail_date, body: data.mail_body || data.mail_excerpt || '',
-        content_type: data.content_type
+        subject: d.subject, from: d.from, date: d.date,
+        body: d.htmlBody || d.textBody || '',
+        isHtml: !!d.htmlBody
     };
 }
 
-// ============================================================
-//  واجهة موحدة (dispatch حسب المزود)
-// ============================================================
-async function createEmail() {
-    if (provider === '1secmail') await createEmail_1sec();
-    else                          await createEmail_gm();
+// ═══════════════════════════════════════════════════════════
+//  GuerrilaMail
+// ═══════════════════════════════════════════════════════════
+async function create_gm() {
+    const raw = await smartFetch('https://api.guerrillamail.com/ajax.php?f=get_email_address');
+    const d   = raw._oma_data || raw;
+    sid   = d.sid_token  || '';
+    email = d.email_addr || '';
+    if (!sid || !email) throw new Error('استجابة فارغة من GuerrilaMail');
+    save({ gm_sid: sid, gm_email: email });
 }
 
-async function getMessages() {
-    if (provider === '1secmail') {
-        const msgs = await getMessages_1sec();
-        return msgs.map(m => ({
-            id: m.id, from: m.from, subject: m.subject,
-            date: m.date, excerpt: m.textBody || m.subject || '', read: false
+async function list_gm() {
+    if (!sid) return [];
+    const url = `https://api.guerrillamail.com/ajax.php?f=get_email_list&offset=0&sid_token=${encodeURIComponent(sid)}`;
+    const raw = await smartFetch(url);
+    const d   = raw._oma_data || raw;
+    return (d.list || [])
+        .filter(m => String(m.mail_id) !== '1')
+        .map(m => ({
+            id: m.mail_id, from: m.mail_from, subject: m.mail_subject,
+            date: m.mail_date, excerpt: m.mail_excerpt || '', read: m.mail_read == 1
         }));
-    } else {
-        return await getMessages_gm();
-    }
 }
 
-async function readMessage(id) {
-    if (provider === '1secmail') {
-        const d = await readMessage_1sec(id);
-        return {
-            subject: d.subject, from: d.from, date: d.date,
-            body: d.htmlBody || d.textBody || '',
-            content_type: d.htmlBody ? 'html' : 'text'
-        };
-    } else {
-        return await readMessage_gm(id);
-    }
+async function read_gm(id) {
+    const url = `https://api.guerrillamail.com/ajax.php?f=fetch_email&email_id=${id}&sid_token=${encodeURIComponent(sid)}`;
+    const raw = await smartFetch(url);
+    const d   = raw._oma_data || raw;
+    const body = d.mail_body || d.mail_excerpt || '';
+    return {
+        subject: d.mail_subject, from: d.mail_from, date: d.mail_date,
+        body, isHtml: d.content_type === 'html' || body.trim().startsWith('<')
+    };
 }
 
-// ============================================================
-//  تبديل المزود
-// ============================================================
-function switchProvider(p) {
-    if (p === provider) return;
-    if (!confirm(`التبديل إلى ${p === '1secmail' ? '1SecMail' : 'GuerrilaMail'}؟ سيتم إنشاء بريد جديد.`)) return;
-    provider = p;
-    localStorage.setItem('gm_provider', p);
-    clearSession();
-    updateProviderUI();
-    init();
-}
+// ═══════════════════════════════════════════════════════════
+//  واجهة موحدة
+// ═══════════════════════════════════════════════════════════
+const createEmail = () => provider === '1secmail' ? create_1sec() : create_gm();
+const listMessages= () => provider === '1secmail' ? list_1sec()   : list_gm();
+const readMessage = id => provider === '1secmail' ? read_1sec(id) : read_gm(id);
 
-function updateProviderUI() {
-    document.getElementById('tab-1secmail').className = 'prov-tab' + (provider==='1secmail' ? ' active' : '');
-    document.getElementById('tab-guerrilla').className = 'prov-tab' + (provider==='guerrilla' ? ' active' : '');
-    document.getElementById('domainPicker').style.display = provider === '1secmail' ? 'block' : 'none';
-}
-
-// ============================================================
-//  اختيار النطاق
-// ============================================================
-function buildDomainPicker() {
-    const container = document.getElementById('domainList');
-    container.innerHTML = '';
-    DOMAINS_1SEC.forEach(d => {
-        const el = document.createElement('span');
-        el.className = 'domain-tag px-2.5 py-1 rounded-lg text-gray-300 ' + (d === selectedDomain ? 'active' : '');
-        el.textContent = '@' + d;
-        el.onclick = () => changeDomain(d);
-        container.appendChild(el);
-    });
-}
-
-function changeDomain(d) {
-    if (d === selectedDomain && currentEmail) return;
-    selectedDomain = d;
-    localStorage.setItem('gm_sel_domain', d);
-    buildDomainPicker();
-    clearSession();
-    init();
-}
-
-// ============================================================
-//  تهيئة التطبيق
-// ============================================================
+// ═══════════════════════════════════════════════════════════
+//  init
+// ═══════════════════════════════════════════════════════════
 async function init() {
-    setStatus('loading', 'جاري تحميل بريدك...');
+    setStatus('loading', 'جاري الاتصال...');
     disableButtons(true);
-    clearInterval(checkInterval);
-
+    clearInterval(interval);
     updateProviderUI();
     buildDomainPicker();
 
     try {
-        if (currentEmail && (sidToken || login)) {
-            document.getElementById('emailDisplay').innerText = currentEmail;
-            setStatus('active', `بريدك جاهز • ${provider === '1secmail' ? '1SecMail' : 'GuerrilaMail'} • يتحقق كل 5 ث`);
+        const hasSession = email && (provider === '1secmail' ? login : sid);
+        if (hasSession) {
+            setEmailDisplay(email);
+            setStatus('active', activeMsg());
         } else {
             await createEmail();
-            document.getElementById('emailDisplay').innerText = currentEmail;
-            setStatus('active', `بريدك جاهز • ${provider === '1secmail' ? '1SecMail' : 'GuerrilaMail'} • يتحقق كل 5 ث`);
+            setEmailDisplay(email);
+            setStatus('active', activeMsg());
         }
         await checkInbox();
     } catch (err) {
-        setStatus('error', '⚠️ تعذّر الاتصال — تحقق من اتصالك');
-        console.error('init error:', err);
+        console.error('init:', err);
+        setStatus('error', `⚠️ ${err.message}`);
+        return;
     }
 
     disableButtons(false);
-    checkInterval = setInterval(checkInbox, 5000);
+    interval = setInterval(checkInbox, 6000);
 }
 
-// ============================================================
-//  فحص الوارد
-// ============================================================
+function activeMsg() {
+    const pname = provider === '1secmail' ? '1SecMail' : 'GuerrilaMail';
+    return `✓ جاهز — ${pname} — يتحقق كل 6 ث`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  فحص البريد الوارد
+// ═══════════════════════════════════════════════════════════
 async function checkInbox() {
-    if (!currentEmail) return;
+    if (!email) return;
     try {
-        const msgs = await getMessages();
+        progress(30);
+        const msgs = await listMessages();
         renderInbox(msgs);
+        progress(100);
+        setTimeout(() => progress(0), 400);
     } catch (e) {
-        console.error('checkInbox:', e);
+        console.warn('checkInbox:', e.message);
+        progress(0);
     }
 }
 
 async function manualRefresh() {
     const btn = document.getElementById('refreshBtn');
-    btn.style.transform = 'rotate(180deg)';
-    btn.style.transition = 'transform 0.4s';
+    btn.style.transform = 'rotate(360deg)';
+    btn.style.transition = 'transform 0.5s';
+    setTimeout(() => { btn.style.transform=''; btn.style.transition=''; }, 500);
     await checkInbox();
-    setTimeout(() => { btn.style.transform = ''; }, 400);
-    showToast('تم التحديث', 'info');
+    showToast('تم التحديث', 'inf');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════════════════
 //  رسم الرسائل
-// ============================================================
+// ═══════════════════════════════════════════════════════════
 function renderInbox(messages) {
     const box   = document.getElementById('inbox');
     const count = document.getElementById('msgCount');
-
     if (!messages || messages.length === 0) {
         box.innerHTML = '<div class="text-center text-gray-600 py-10 italic text-sm">في انتظار وصول الرسائل...</div>';
         count.innerText = '';
         return;
     }
-
     count.innerText = `${messages.length} رسالة`;
     box.innerHTML = '';
-
     messages.forEach(msg => {
-        const isUnread = !seenIds.has(String(msg.id)) && !msg.read;
+        const unread = !seenIds.has(String(msg.id)) && !msg.read;
         const div = document.createElement('div');
-        div.className = `msg-item p-4 rounded-2xl ${isUnread ? 'unread' : ''}`;
-        const excerpt = String(msg.excerpt || '').substring(0, 90);
+        div.className = `msg-item p-4 rounded-2xl ${unread ? 'unread' : ''}`;
+        const exc = String(msg.excerpt || '').substring(0, 90);
         div.innerHTML = `
             <div class="flex justify-between items-center gap-2">
-                <div class="font-semibold text-blue-300 truncate text-sm">${escapeHtml(msg.from || '')}</div>
-                <div class="text-[11px] text-gray-500 whitespace-nowrap flex-shrink-0">${escapeHtml(msg.date || '')}</div>
+                <div class="font-semibold text-blue-300 truncate text-sm">${esc(msg.from||'')}</div>
+                <div class="text-[11px] text-gray-500 whitespace-nowrap flex-shrink-0">${esc(msg.date||'')}</div>
             </div>
-            <div class="text-sm text-gray-100 mt-1">${escapeHtml(msg.subject || '(بدون موضوع)')}</div>
-            <div class="text-xs text-gray-500 mt-1 truncate">${escapeHtml(excerpt)}${excerpt.length >= 90 ? '...' : ''}</div>
-            ${isUnread ? '<span class="inline-block mt-2 text-[10px] bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded-full">● جديد</span>' : ''}
+            <div class="text-sm text-gray-100 mt-1">${esc(msg.subject||'(بدون موضوع)')}</div>
+            ${exc ? `<div class="text-xs text-gray-500 mt-1 truncate">${esc(exc)}${exc.length>=90?'...':''}</div>` : ''}
+            ${unread ? '<span class="inline-block mt-2 text-[10px] bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded-full">● جديد</span>' : ''}
         `;
         div.onclick = () => openMessage(msg.id, div);
         box.appendChild(div);
     });
 }
 
-// ============================================================
-//  فتح الرسالة
-// ============================================================
+// ═══════════════════════════════════════════════════════════
+//  فتح رسالة
+// ═══════════════════════════════════════════════════════════
 async function openMessage(id, el) {
     document.getElementById('modalSubject').innerText = '⏳ جاري التحميل...';
-    document.getElementById('modalBody').innerHTML = '<div class="flex justify-center py-6"><span class="spinner"></span></div>';
+    document.getElementById('modalBody').innerHTML =
+        '<div class="flex justify-center py-6"><span class="spinner"></span></div>';
+    document.getElementById('modalFrom').innerText = '';
+    document.getElementById('modalDate').innerText = '';
     document.getElementById('msgModal').classList.add('active');
-
     try {
         const msg = await readMessage(id);
         document.getElementById('modalSubject').innerText = msg.subject || '(بدون موضوع)';
-        document.getElementById('modalFrom').innerText    = msg.from   || '';
-        document.getElementById('modalDate').innerText    = msg.date   || '';
-
-        const body    = msg.body || '';
+        document.getElementById('modalFrom').innerText    = msg.from || '';
+        document.getElementById('modalDate').innerText    = msg.date || '';
         const bodyDiv = document.getElementById('modalBody');
-        if (msg.content_type === 'html' || body.trim().startsWith('<')) {
-            const blob = new Blob([body], { type: 'text/html' });
+        if (msg.isHtml) {
+            const blob = new Blob([msg.body], { type: 'text/html' });
             const url  = URL.createObjectURL(blob);
             bodyDiv.innerHTML = `<iframe src="${url}"
                 class="w-full rounded-xl border border-white/10"
-                style="height:360px; background:white;"
+                style="height:360px;background:white;"
                 sandbox="allow-same-origin"></iframe>`;
         } else {
-            bodyDiv.innerHTML = `<pre class="text-sm text-gray-200 leading-relaxed">${escapeHtml(body)}</pre>`;
+            bodyDiv.innerHTML = `<pre class="text-sm text-gray-200 leading-relaxed">${esc(msg.body)}</pre>`;
         }
-
         seenIds.add(String(id));
         localStorage.setItem('gm_seen', JSON.stringify([...seenIds]));
         if (el) {
             el.classList.remove('unread');
-            const badge = el.querySelector('.bg-blue-600\\/30');
-            if (badge) badge.remove();
+            el.querySelector('.bg-blue-600\\/30')?.remove();
         }
     } catch (e) {
         document.getElementById('modalBody').innerHTML =
-            `<p class="text-red-400">خطأ في تحميل الرسالة: ${escapeHtml(e.message)}</p>`;
+            `<p class="text-red-400 text-sm">خطأ في تحميل الرسالة: ${esc(e.message)}</p>`;
     }
 }
 
@@ -505,82 +466,127 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.getElementById('msgModal').classList.remove('active');
 });
 
-// ============================================================
-//  تجديد / مسح الجلسة
-// ============================================================
+// ═══════════════════════════════════════════════════════════
+//  تبديل المزود
+// ═══════════════════════════════════════════════════════════
+function switchProvider(p) {
+    if (p === provider) return;
+    if (!confirm(`التبديل إلى ${p==='1secmail'?'1SecMail':'GuerrilaMail'}؟ سيتم إنشاء بريد جديد.`)) return;
+    provider = p;
+    localStorage.setItem('gm_provider', p);
+    clearSession();
+    init();
+}
+
+function updateProviderUI() {
+    document.getElementById('tab-1sec').className = 'prov-tab' + (provider==='1secmail' ? ' active' : '');
+    document.getElementById('tab-gm').className   = 'prov-tab' + (provider==='guerrilla' ? ' active' : '');
+    document.getElementById('domainRow').style.display = provider==='1secmail' ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  اختيار النطاق
+// ═══════════════════════════════════════════════════════════
+function buildDomainPicker() {
+    const c = document.getElementById('domainList');
+    c.innerHTML = '';
+    DOMAINS_1SEC.forEach(d => {
+        const el = document.createElement('span');
+        el.className = 'domain-tag px-2.5 py-1 rounded-lg text-gray-300 ' + (d===selDomain ? 'sel' : '');
+        el.textContent = '@' + d;
+        el.onclick = () => changeDomain(d);
+        c.appendChild(el);
+    });
+}
+
+function changeDomain(d) {
+    if (d === selDomain && email) return;
+    selDomain = d;
+    localStorage.setItem('gm_sel_domain', d);
+    clearSession();
+    init();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  نسخ البريد
+// ═══════════════════════════════════════════════════════════
+function copyEmail() {
+    const val = document.getElementById('emailDisplay').innerText.trim();
+    if (!val || val === 'جاري التحميل...') return;
+    const doIt = () => { showToast('✅ تم نسخ البريد!', 'ok'); };
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(val).then(doIt).catch(() => fallback(val, doIt));
+    } else { fallback(val, doIt); }
+}
+function fallback(val, cb) {
+    const ta = Object.assign(document.createElement('textarea'),
+        { value: val, style: 'position:fixed;top:-9999px' });
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    cb();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  مسح الجلسة
+// ═══════════════════════════════════════════════════════════
 function clearSession() {
-    currentEmail = login = domain = sidToken = '';
+    email = login = domain = sid = '';
     seenIds.clear();
     ['gm_email','gm_login','gm_domain','gm_sid','gm_seen'].forEach(k => localStorage.removeItem(k));
     document.getElementById('inbox').innerHTML =
         '<div class="text-center text-gray-600 py-10 italic text-sm">في انتظار وصول الرسائل...</div>';
     document.getElementById('msgCount').innerText = '';
-    document.getElementById('emailDisplay').innerText = 'جاري التحميل...';
+    setEmailDisplay('جاري التحميل...');
 }
 
 async function refreshEmail() {
-    if (!confirm('هل تريد الحصول على إيميل جديد؟ ستُفقد الرسائل الحالية.')) return;
-    clearInterval(checkInterval);
+    if (!confirm('هل تريد إيميل جديد؟ ستُفقد الرسائل الحالية.')) return;
+    clearInterval(interval);
     clearSession();
     await init();
 }
 
-// ============================================================
-//  نسخ البريد
-// ============================================================
-function copyEmail() {
-    const email = document.getElementById('emailDisplay').innerText.trim();
-    if (!email || email === 'جاري التحميل...') return;
-    if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(email).then(() => showToast('✅ تم نسخ البريد!', 'success')).catch(fallback);
-    } else { fallback(); }
-    function fallback() {
-        const ta = Object.assign(document.createElement('textarea'),
-            { value: email, style: 'position:fixed;top:-9999px' });
-        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
-        showToast('✅ تم نسخ البريد!', 'success');
-    }
-}
-
-// ============================================================
-//  مساعدات UI
-// ============================================================
+// ═══════════════════════════════════════════════════════════
+//  مساعدات
+// ═══════════════════════════════════════════════════════════
+function save(obj) { Object.entries(obj).forEach(([k,v]) => localStorage.setItem(k, v)); }
+function setEmailDisplay(val) { document.getElementById('emailDisplay').innerText = val; }
 function disableButtons(d) {
-    ['btnCopy','btnNew'].forEach(id => {
-        const el = document.getElementById(id);
-        el.disabled = d;
-    });
+    ['btnCopy','btnNew'].forEach(id => { document.getElementById(id).disabled = d; });
 }
 
 function setStatus(type, msg) {
     const el = document.getElementById('status');
     if (type === 'loading')
-        el.innerHTML = `<span class="spinner"></span><span class="text-gray-400">${msg}</span>`;
+        el.innerHTML = `<span class="spinner"></span><span class="text-gray-400 text-xs">${msg}</span>`;
     else if (type === 'active')
-        el.innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full inline-block flex-shrink-0"></span><span class="text-green-400 text-xs">${msg}</span>`;
+        el.innerHTML = `<span class="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></span><span class="text-green-400 text-xs">${msg}</span>`;
     else if (type === 'error')
         el.innerHTML = `<span class="text-red-400 text-xs">${msg}</span>
             <button onclick="init()" class="mr-2 text-xs underline text-blue-400 hover:text-blue-300">إعادة المحاولة</button>`;
 }
 
-let toastTimer = null;
-function showToast(msg, type = 'info') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `show ${type}`;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.className = type; }, 2200);
+function progress(pct) {
+    document.getElementById('prog').style.width = pct + '%';
+    if (pct === 0) document.getElementById('prog').style.width = '0';
 }
 
-function escapeHtml(str) {
-    return String(str)
+let toastT = null;
+function showToast(msg, type='inf') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `show ${type}`;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => { t.className = type; }, 2300);
+}
+
+function esc(s) {
+    return String(s)
         .replace(/&/g,'&amp;').replace(/</g,'&lt;')
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════════════════
 //  بدء التطبيق
-// ============================================================
+// ═══════════════════════════════════════════════════════════
 init();
 </script>
 </body>
