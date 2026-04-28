@@ -3,71 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بريد عمرو محسن مؤقت واحترافي | خدمة إيميلات وهمية سريعة وآمنة</title>
-    <meta name="description" content="أفضل خدمة بريد مؤقت لحماية خصوصيتك. احصل على إيميل وهمي بضغطة زر مع حماية كاملة من السبام.">
+    <title>Amr Cloud Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass-morphism {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-        }
-        .ad-placeholder {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            font-size: 0.8rem;
-            margin: 10px 0;
-        }
-        .animate-pulse-slow {
-            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gradient-to-br from-blue-900 to-black text-white min-h-screen font-sans">
+<body class="min-h-screen p-4 md:p-8">
 
-    <div class="container mx-auto p-4 grid grid-cols-2 gap-4">
-        <div class="ad-placeholder h-24">إعلان 1 (Header)</div>
-        <div class="ad-placeholder h-24">إعلان 2 (Header)</div>
-    </div>
+    <header class="max-w-6xl mx-auto flex justify-between items-center mb-6 p-6 glass rounded-2xl">
+        <div>
+            <h1 class="text-3xl font-bold text-blue-400">Amr Cloud Control</h1>
+            <p class="text-sm text-gray-400">مركز التحكم السحابي للنظام</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="window.open('http://127.0.0.1:5000/', '_blank')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-bold">فتح النظام المحلي</button>
+        </div>
+    </header>
 
-    <main class="container mx-auto px-4 py-12 text-center">
-        <h1 class="text-5xl font-extrabold mb-6 animate-pulse-slow">احمِ خصوصيتك ببريد عمرو محسن مؤقت واحترافي </h1>
-        <p class="text-xl text-blue-200 mb-8">تخلص من الرسائل المزعجة بضغطة واحدة</p>
+    <main class="max-w-6xl mx-auto">
+        <h2 class="text-xl font-bold mb-6">لوحات التحكم المتاحة</h2>
 
-        <div class="glass-morphism max-w-2xl mx-auto p-10 shadow-2xl transition-all hover:scale-105">
-            <button onclick="goToMail()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-full text-2xl shadow-lg transform transition active:scale-95">
-                إنشاء إيميل مؤقت الآن
-            </button>
-            
-            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="ad-placeholder h-32">إعلان 5</div>
-                <div class="ad-placeholder h-32">إعلان 6</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Cloud Control Card -->
+            <div class="glass p-6 rounded-2xl hover:scale-[1.02] transition-all cursor-pointer" onclick="window.location.href='cloud-control.html'">
+                <div class="text-4xl mb-3">☁️</div>
+                <h3 class="text-lg font-bold mb-2">Cloud Control</h3>
+                <p class="text-xs text-gray-400">دردشة فورية مع ترجمة آلية (عربي ↔ إنجليزي)</p>
+                <div class="mt-4 text-xs text-blue-400">فتح الصفحة ←</div>
+            </div>
+
+            <!-- Temp Mail Card -->
+            <div class="glass p-6 rounded-2xl hover:scale-[1.02] transition-all cursor-pointer" onclick="window.location.href='temp-mail.html'">
+                <div class="text-4xl mb-3">📧</div>
+                <h3 class="text-lg font-bold mb-2">Temp Mail</h3>
+                <p class="text-xs text-gray-400">بريد مؤقت لاستلام الرسائل والتحقق</p>
+                <div class="mt-4 text-xs text-blue-400">فتح الصفحة ←</div>
+            </div>
+
+            <!-- Control Panel Card -->
+            <div class="glass p-6 rounded-2xl hover:scale-[1.02] transition-all cursor-pointer" onclick="window.location.href='control-panel.html'">
+                <div class="text-4xl mb-3">🎛️</div>
+                <h3 class="text-lg font-bold mb-2">لوحة التحكم</h3>
+                <p class="text-xs text-gray-400">لوحة التحكم الرئيسية للنظام</p>
+                <div class="mt-4 text-xs text-blue-400">فتح الصفحة ←</div>
             </div>
         </div>
 
-        <section class="mt-20 text-right max-w-4xl mx-auto bg-white text-gray-800 p-8 rounded-lg">
-            <h2 class="text-2xl font-bold mb-4">لماذا تحتاج إلى بريد مؤقت؟</h2>
-            <p>نحن نقدم لك أفضل خدمة **Temp Mail** لعام 2026. تساعدك خدماتنا في التسجيل في المواقع دون الكشف عن هويتك الحقيقية، مما يحميك من الاختراقات والرسائل التسويقية المزعجة.</p>
-        </section>
-
-        <div class="container mx-auto mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="ad-placeholder h-20">إعلان 7</div>
-            <div class="ad-placeholder h-20">إعلان 8</div>
-            <div class="ad-placeholder h-20">إعلان 9</div>
-            <div class="ad-placeholder h-20">إعلان 10</div>
+        <!-- Quick Links -->
+        <div class="glass rounded-2xl p-6">
+            <h3 class="text-lg font-bold mb-4">روابط سريعة</h3>
+            <div class="flex flex-wrap gap-3">
+                <a href="http://127.0.0.1:5000/" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm">النظام المحلي</a>
+                <a href="https://arena.ai/" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm">Arena.ai</a>
+                <a href="https://mtrust199-del.github.io/temp-mail/" target="_blank" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm">Temp Mail</a>
+                <a href="https://github.com/mtrust199-del/amr-media-generator" target="_blank" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm">GitHub</a>
+            </div>
         </div>
     </main>
 
-    <script>
-        function goToMail() {
-            // هذا السطر هو المحرك الفعلي للانتقال
-            window.location.href = "mail.html";
-        }
-    </script>
+    <footer class="max-w-6xl mx-auto mt-8 text-center text-xs text-gray-500">
+        <p>Amr Cloud Control © 2026 | تم التطوير بواسطة Claude</p>
+    </footer>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
